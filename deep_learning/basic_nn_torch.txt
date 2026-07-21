@@ -1,0 +1,77 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class FeedForwardNN(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super().__init__()
+
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+# -------------------------
+# Example data
+# -------------------------
+n_samples = 1000
+input_dim = 10
+hidden_dim = 64
+output_dim = 1
+
+X = torch.randn(n_samples, input_dim)
+y = torch.randn(n_samples, output_dim)
+
+# -------------------------
+# Model, loss, optimizer
+# -------------------------
+model = FeedForwardNN(input_dim, hidden_dim, output_dim)
+
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+# -------------------------
+# Training loop
+# -------------------------
+n_epochs = 100
+
+for epoch in range(n_epochs):
+    model.train()
+
+    y_pred = model(X)
+    loss = criterion(y_pred, y)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch:03d} | Loss: {loss.item():.6f}")
+
+
+# -------------------------
+# Prediction
+# -------------------------
+model.eval()
+
+with torch.no_grad():
+    x_new = torch.randn(1, input_dim)
+    prediction = model(x_new)
+
+print("Prediction:", prediction)
+
+# Binary classification
+criterion = nn.BCEWithLogitsLoss()
+output_dim = 1
+
+# Multiclass classification
+criterion = nn.CrossEntropyLoss()
+output_dim = n_classes
